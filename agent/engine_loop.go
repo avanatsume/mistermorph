@@ -280,11 +280,16 @@ func (e *Engine) runLoop(ctx context.Context, st *engineLoopState) (*Final, *Con
 				assistantTextAdded = true
 			}
 			if !assistantTextAdded {
-				st.messages = append(st.messages, llm.Message{
-					Role:      "assistant",
-					Content:   result.Text,
-					ToolCalls: result.ToolCalls,
-				})
+				if len(result.Messages) > 0 {
+					st.messages = append(st.messages, result.Messages...)
+				} else {
+					st.messages = append(st.messages, llm.Message{
+						Role:      "assistant",
+						Content:   result.Text,
+						Parts:     result.Parts,
+						ToolCalls: result.ToolCalls,
+					})
+				}
 				assistantTextAdded = true
 			}
 

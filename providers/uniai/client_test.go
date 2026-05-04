@@ -928,6 +928,50 @@ func TestToolCallThoughtSignatureRoundTrip(t *testing.T) {
 	}
 }
 
+func TestReasoningContentMessageRoundTrip(t *testing.T) {
+	call := llm.ToolCall{
+		ID:           "call_1",
+		Name:         "read_file",
+		RawArguments: `{"path":"README.md"}`,
+	}
+	req := llm.Request{
+		Messages: []llm.Message{
+			{Role: "user", Content: "read README"},
+			{
+				Role:             "assistant",
+				Content:          "using tool",
+				ToolCalls:        []llm.ToolCall{call},
+				ReasoningContent: "real reasoning",
+			},
+		},
+	}
+
+	opts := buildChatOptions(req, "deepseek", "deepseek-v4-pro", "", "", false, uniaiapi.ToolsEmulationOff, nil, "", nil)
+	built, err := uniaichat.BuildRequest(opts...)
+	if err != nil {
+		t.Fatalf("build request: %v", err)
+	}
+	if got := built.Messages[1].ReasoningContent; got != "real reasoning" {
+		t.Fatalf("reasoning content = %q, want real reasoning", got)
+	}
+
+	messages := toLLMMessages([]uniaiapi.Message{{
+		Role:             "assistant",
+		Content:          "using tool",
+		ToolCalls:        toUniaiToolCallsFromLLM([]llm.ToolCall{call}),
+		ReasoningContent: "real reasoning",
+	}})
+	if len(messages) != 1 {
+		t.Fatalf("messages = %d, want 1", len(messages))
+	}
+	if messages[0].ReasoningContent != "real reasoning" {
+		t.Fatalf("reasoning content = %q, want real reasoning", messages[0].ReasoningContent)
+	}
+	if len(messages[0].ToolCalls) != 1 || messages[0].ToolCalls[0].ID != "call_1" {
+		t.Fatalf("unexpected tool calls: %#v", messages[0].ToolCalls)
+	}
+}
+
 func TestEnsureGeminiToolCallThoughtSignaturesDecodeFromID(t *testing.T) {
 	rawID := "call_1|ts:c2lnX2Zyb21faWQ"
 	calls := []llm.ToolCall{{

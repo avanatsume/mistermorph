@@ -180,6 +180,7 @@ func (c *Client) Chat(ctx context.Context, req llm.Request) (llm.Result, error) 
 	return llm.Result{
 		Text:      resp.Text,
 		Parts:     toLLMParts(resp.Parts),
+		Messages:  toLLMMessages(uniaiapi.AssistantReplayMessages(resp)),
 		ToolCalls: toolCalls,
 		Usage:     usage,
 		Duration:  time.Since(start),
@@ -194,7 +195,7 @@ func buildChatOptions(req llm.Request, provider string, defaultModel string, cac
 	req = adaptRequestForProvider(req, provider)
 	msgs := make([]uniaiapi.Message, len(req.Messages))
 	for i, m := range req.Messages {
-		msg := uniaiapi.Message{Role: m.Role, Content: m.Content}
+		msg := uniaiapi.Message{Role: m.Role, Content: m.Content, ReasoningContent: m.ReasoningContent}
 		if len(m.Parts) > 0 {
 			msg.Parts = toUniaiPartsFromLLM(provider, m.Parts)
 		}
@@ -1044,6 +1045,24 @@ func toLLMParts(parts []uniaiapi.Part) []llm.Part {
 	}
 	if len(out) == 0 {
 		return nil
+	}
+	return out
+}
+
+func toLLMMessages(messages []uniaiapi.Message) []llm.Message {
+	if len(messages) == 0 {
+		return nil
+	}
+	out := make([]llm.Message, 0, len(messages))
+	for _, msg := range messages {
+		out = append(out, llm.Message{
+			Role:             msg.Role,
+			Content:          msg.Content,
+			Parts:            toLLMParts(msg.Parts),
+			ToolCallID:       msg.ToolCallID,
+			ToolCalls:        toLLMToolCalls(msg.ToolCalls),
+			ReasoningContent: msg.ReasoningContent,
+		})
 	}
 	return out
 }

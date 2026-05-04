@@ -156,6 +156,52 @@ func baseRegistry() *tools.Registry {
 	return tools.NewRegistry()
 }
 
+func TestRun_ReplaysProviderAssistantMessagesForToolCalls(t *testing.T) {
+	call := llm.ToolCall{
+		ID:        "call_1",
+		Name:      "read_file",
+		Arguments: map[string]any{},
+	}
+	client := newMockClient(
+		llm.Result{
+			Text:      "using tool",
+			ToolCalls: []llm.ToolCall{call},
+			Messages: []llm.Message{{
+				Role:             "assistant",
+				Content:          "using tool",
+				ToolCalls:        []llm.ToolCall{call},
+				ReasoningContent: "real reasoning",
+			}},
+		},
+		finalResponse("done"),
+	)
+	reg := tools.NewRegistry()
+	reg.Register(&mockTool{name: "read_file", result: "file content"})
+	e := New(client, reg, baseCfg(), DefaultPromptSpec())
+
+	if _, _, err := e.Run(context.Background(), "read README", RunOptions{}); err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+
+	calls := client.allCalls()
+	if len(calls) < 2 {
+		t.Fatalf("expected at least 2 calls, got %d", len(calls))
+	}
+	var assistant llm.Message
+	for _, msg := range calls[1].Messages {
+		if msg.Role == "assistant" {
+			assistant = msg
+			break
+		}
+	}
+	if assistant.ReasoningContent != "real reasoning" {
+		t.Fatalf("reasoning content = %q, want real reasoning", assistant.ReasoningContent)
+	}
+	if len(assistant.ToolCalls) != 1 || assistant.ToolCalls[0].ID != "call_1" {
+		t.Fatalf("unexpected assistant tool calls: %#v", assistant.ToolCalls)
+	}
+}
+
 // ============================================================
 // Tests for Option functions and Engine field assignments
 // ============================================================

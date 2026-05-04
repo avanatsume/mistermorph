@@ -6,11 +6,12 @@ import (
 )
 
 type Message struct {
-	Role       string     `json:"role"`
-	Content    string     `json:"content"`
-	Parts      []Part     `json:"parts,omitempty"`
-	ToolCallID string     `json:"tool_call_id,omitempty"`
-	ToolCalls  []ToolCall `json:"tool_calls,omitempty"`
+	Role             string     `json:"role"`
+	Content          string     `json:"content"`
+	Parts            []Part     `json:"parts,omitempty"`
+	ToolCallID       string     `json:"tool_call_id,omitempty"`
+	ToolCalls        []ToolCall `json:"tool_calls,omitempty"`
+	ReasoningContent string     `json:"reasoning_content,omitempty"`
 }
 
 type CacheControl struct {
@@ -91,6 +92,7 @@ type StreamHandler func(event StreamEvent) error
 type Result struct {
 	Text      string
 	Parts     []Part
+	Messages  []Message
 	JSON      any
 	ToolCalls []ToolCall
 	Usage     Usage
