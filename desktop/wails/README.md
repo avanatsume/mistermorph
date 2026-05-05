@@ -4,9 +4,9 @@ This directory contains the Wails desktop host for `mistermorph`.
 
 ## Current MVP wiring
 
-- Runs a local `mistermorph console serve` subprocess on a random loopback port.
-- Prefers a sibling or configured `mistermorph` backend binary and can auto-download one as fallback.
-- If no `mistermorph` backend binary is found, desktop host tries to download a matching release binary first.
+- Runs a local backend `console serve` subprocess on a random loopback port.
+- Prefers a sibling or configured backend binary and can auto-download one as fallback.
+- If no bundled backend binary is found, desktop host tries to download a matching CLI release binary first.
 - Proxies the Wails WebView traffic to the local console server at root path `/`.
 - Exposes a Go binding `App.RestartApp()` for setup-complete restart.
 
@@ -62,8 +62,7 @@ go build -tags 'wailsdesktop production' -o ./bin/mistermorph-desktop ./desktop/
 ```
 
 For local Linux builds with DevTools enabled, use `scripts/build-desktop.sh`. It automatically switches Linux debug builds to `wailsdesktop dev devtools`, because Wails v3 alpha does not currently support `linux + production + devtools`.
-With default outputs, that script writes `./bin/mistermorph-desktop` and `./bin/mistermorph`
-(Windows: `mistermorph-desktop.exe` and `mistermorph.exe`).
+With default outputs, that script writes `./bin/MisterMorph` and `./bin/mistermorphc` on macOS, `./bin/MisterMorph.exe` and `./bin/mistermorphc.exe` on Windows, and `./bin/mistermorph-desktop` and `./bin/mistermorph` on Linux.
 
 ## Config file forwarding
 
@@ -74,8 +73,8 @@ If you start desktop app with `--config <path>`, that path is forwarded to the c
 Backend binary candidate order:
 
 1. `MISTERMORPH_DESKTOP_BACKEND_BIN`
-2. `./bin/mistermorph` (or `.exe` on Windows)
-3. sibling paths near desktop executable (`mistermorph`; legacy `mistermorph-backend` still accepted)
+2. `./bin/mistermorphc` on macOS/Windows, or `./bin/mistermorph` on Linux
+3. sibling paths near desktop executable (`mistermorphc` before `mistermorph` on macOS/Windows; `mistermorph` on Linux; legacy `mistermorph-backend` still accepted)
 4. `PATH` lookup (`mistermorph`)
 5. download from GitHub releases (enabled by default)
 
@@ -103,10 +102,10 @@ That gives the Wails v3 updater a stable latest-release URL:
 https://github.com/quailyquaily/mistermorph/releases/latest/download/update.json
 ```
 
-The desktop release packages bundle a sibling `mistermorph` backend binary so the packaged app can launch `console serve` without a first-run download.
+The macOS and Windows desktop release packages bundle a sibling `mistermorphc` backend binary; the Linux package keeps the sibling backend as `mistermorph`.
 The Linux updater tarball is not an `.AppImage` wrapped in another archive; it contains the unpacked AppDir bundle so the updater asset is a real Linux app payload.
 That bundled backend is built with `CGO_ENABLED=0` on purpose; keep it that way unless the CLI/backend grows an unavoidable native dependency.
-The Windows release bundle now includes both `mistermorph-desktop.exe` and `mistermorph.exe`; keep them in the same directory after unzip.
+The Windows release bundle includes both `MisterMorph.exe` and `mistermorphc.exe`; keep them in the same directory after unzip.
 The Windows release workflow also generates a `.ico` and Windows `.syso` resource on the runner so the published desktop executable carries the app icon.
 The macOS packaging script signs the `.app` bundle in two modes:
 

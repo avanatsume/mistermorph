@@ -101,8 +101,8 @@ jobs:
             goarch: arm64
             desktop_asset: mistermorph-desktop-darwin-arm64.dmg
             update_asset: mistermorph-desktop-darwin-arm64.tar.gz
-            raw_desktop_binary: dist/mistermorph-desktop
-            bundled_backend_binary: dist/mistermorph
+            raw_desktop_binary: dist/MisterMorph
+            bundled_backend_binary: dist/mistermorphc
             package_kind: dmg
             go_build_tags: "wailsdesktop production"
           - label: windows-amd64
@@ -111,8 +111,8 @@ jobs:
             goarch: amd64
             desktop_asset: mistermorph-desktop-windows-amd64.zip
             update_asset: ""
-            raw_desktop_binary: dist/mistermorph-desktop.exe
-            bundled_backend_binary: dist/mistermorph.exe
+            raw_desktop_binary: dist/MisterMorph.exe
+            bundled_backend_binary: dist/mistermorphc.exe
             package_kind: zip
             go_build_tags: "wailsdesktop production"
 
@@ -248,6 +248,7 @@ jobs:
           DESKTOP_BIN="${{ matrix.raw_desktop_binary }}" \
           BACKEND_BIN="${{ matrix.bundled_backend_binary }}" \
           OUT_DIR="dist" \
+          BUNDLED_BACKEND_NAME="mistermorphc" \
           TARBALL_PATH="dist/${{ matrix.update_asset }}" \
           CODESIGN_IDENTITY="${CODESIGN_IDENTITY}" \
           APPLE_ID="${APPLE_ID}" \
@@ -299,14 +300,14 @@ jobs:
             Remove-Item -Recurse -Force $bundle
           }
           New-Item -ItemType Directory -Path $bundle | Out-Null
-          Copy-Item "${{ matrix.raw_desktop_binary }}" "$bundle/mistermorph-desktop.exe"
-          Copy-Item "${{ matrix.bundled_backend_binary }}" "$bundle/mistermorph.exe"
+          Copy-Item "${{ matrix.raw_desktop_binary }}" "$bundle/MisterMorph.exe"
+          Copy-Item "${{ matrix.bundled_backend_binary }}" "$bundle/mistermorphc.exe"
           Copy-Item "LICENSE" "$bundle/LICENSE"
           @"
           MisterMorph Desktop for Windows.
 
-          Keep mistermorph-desktop.exe and mistermorph.exe in the same directory.
-          Launch the app with mistermorph-desktop.exe.
+          Keep MisterMorph.exe and mistermorphc.exe in the same directory.
+          Launch the app with MisterMorph.exe.
           "@ | Set-Content "$bundle/README-desktop.txt"
           if (Test-Path "dist/${{ matrix.desktop_asset }}") {
             Remove-Item -Force "dist/${{ matrix.desktop_asset }}"

@@ -91,18 +91,23 @@ func TestResolveDesktopBackendCandidates_AppDirPreferredOverWorkingDir(t *testin
 	if len(candidates) < 3 {
 		t.Fatalf("expected multiple candidates, got %#v", candidates)
 	}
-	if got, want := candidates[0], filepath.Join(appDir, "usr", "bin", desktopBackendBinaryBaseName()); !sameCleanPath(got, want) {
+	if got, want := candidates[0], filepath.Join(appDir, "usr", "bin", desktopBundledBackendBinaryBaseName()); !sameCleanPath(got, want) {
 		t.Fatalf("first candidate = %q, want %q", got, want)
 	}
-	appDirCandidate := filepath.Join(appDir, "usr", "bin", desktopBackendBinaryBaseName())
+	appDirCandidate := filepath.Join(appDir, "usr", "bin", desktopBundledBackendBinaryBaseName())
+	cliCandidate := filepath.Join(appDir, "usr", "bin", desktopBackendBinaryBaseName())
 	legacyCandidate := filepath.Join(appDir, "usr", "bin", desktopLegacyBundledBackendBinaryBaseName())
-	wdCandidate := filepath.Join(wd, "bin", desktopBackendBinaryBaseName())
+	wdCandidate := filepath.Join(wd, "bin", desktopBundledBackendBinaryBaseName())
 	appIdx := -1
+	cliIdx := -1
 	legacyIdx := -1
 	wdIdx := -1
 	for i, c := range candidates {
 		if sameCleanPath(c, appDirCandidate) {
 			appIdx = i
+		}
+		if sameCleanPath(c, cliCandidate) {
+			cliIdx = i
 		}
 		if sameCleanPath(c, legacyCandidate) {
 			legacyIdx = i
@@ -111,13 +116,17 @@ func TestResolveDesktopBackendCandidates_AppDirPreferredOverWorkingDir(t *testin
 			wdIdx = i
 		}
 	}
-	if appIdx == -1 || legacyIdx == -1 || wdIdx == -1 {
-		t.Fatalf("expected appdir, legacy and wd candidates in %#v", candidates)
+	if appIdx == -1 || cliIdx == -1 || legacyIdx == -1 || wdIdx == -1 {
+		t.Fatalf("expected appdir bundled, cli, legacy and wd candidates in %#v", candidates)
 	}
-	if appIdx >= legacyIdx || legacyIdx >= wdIdx {
-		t.Fatalf("candidate order appdir=%d legacy=%d wd=%d, want appdir < legacy < wd in %#v", appIdx, legacyIdx, wdIdx, candidates)
+	if desktopBundledBackendBinaryBaseName() == desktopBackendBinaryBaseName() {
+		if appIdx >= legacyIdx || legacyIdx >= wdIdx {
+			t.Fatalf("candidate order appdir=%d legacy=%d wd=%d, want appdir < legacy < wd in %#v", appIdx, legacyIdx, wdIdx, candidates)
+		}
+	} else if appIdx >= cliIdx || cliIdx >= legacyIdx || legacyIdx >= wdIdx {
+		t.Fatalf("candidate order appdir=%d cli=%d legacy=%d wd=%d, want appdir < cli < legacy < wd in %#v", appIdx, cliIdx, legacyIdx, wdIdx, candidates)
 	}
-	unexpected := filepath.Join(appDir, "usr", "bin", "bin", desktopBackendBinaryBaseName())
+	unexpected := filepath.Join(appDir, "usr", "bin", "bin", desktopBundledBackendBinaryBaseName())
 	for _, c := range candidates {
 		if sameCleanPath(c, unexpected) {
 			t.Fatalf("unexpected nested bin candidate %q in %#v", c, candidates)
@@ -125,29 +134,38 @@ func TestResolveDesktopBackendCandidates_AppDirPreferredOverWorkingDir(t *testin
 	}
 }
 
-func TestResolveDesktopBackendCandidates_SiblingBackendBeforeLegacyName(t *testing.T) {
+func TestResolveDesktopBackendCandidates_SiblingBundledBackendBeforeCLIAndLegacyNames(t *testing.T) {
 	root := t.TempDir()
-	exePath := filepath.Join(root, "mistermorph-desktop.app", "Contents", "MacOS", "mistermorph-desktop")
+	exePath := filepath.Join(root, "MisterMorph.app", "Contents", "MacOS", "MisterMorph")
 	t.Setenv(desktopBackendBinEnv, "")
 
 	candidates := resolveDesktopBackendCandidates(exePath, "")
-	defaultCandidate := filepath.Join(filepath.Dir(exePath), desktopBackendBinaryBaseName())
+	bundledCandidate := filepath.Join(filepath.Dir(exePath), desktopBundledBackendBinaryBaseName())
+	cliCandidate := filepath.Join(filepath.Dir(exePath), desktopBackendBinaryBaseName())
 	legacyCandidate := filepath.Join(filepath.Dir(exePath), desktopLegacyBundledBackendBinaryBaseName())
-	defaultIdx := -1
+	bundledIdx := -1
+	cliIdx := -1
 	legacyIdx := -1
 	for i, c := range candidates {
-		if sameCleanPath(c, defaultCandidate) {
-			defaultIdx = i
+		if sameCleanPath(c, bundledCandidate) {
+			bundledIdx = i
+		}
+		if sameCleanPath(c, cliCandidate) {
+			cliIdx = i
 		}
 		if sameCleanPath(c, legacyCandidate) {
 			legacyIdx = i
 		}
 	}
-	if defaultIdx == -1 || legacyIdx == -1 {
-		t.Fatalf("expected sibling default and legacy candidates in %#v", candidates)
+	if bundledIdx == -1 || cliIdx == -1 || legacyIdx == -1 {
+		t.Fatalf("expected sibling bundled, cli and legacy candidates in %#v", candidates)
 	}
-	if defaultIdx >= legacyIdx {
-		t.Fatalf("default candidate index = %d, legacy candidate index = %d, want default before legacy in %#v", defaultIdx, legacyIdx, candidates)
+	if desktopBundledBackendBinaryBaseName() == desktopBackendBinaryBaseName() {
+		if bundledIdx >= legacyIdx {
+			t.Fatalf("candidate order bundled=%d legacy=%d, want bundled before legacy in %#v", bundledIdx, legacyIdx, candidates)
+		}
+	} else if bundledIdx >= cliIdx || cliIdx >= legacyIdx {
+		t.Fatalf("candidate order bundled=%d cli=%d legacy=%d, want bundled before cli before legacy in %#v", bundledIdx, cliIdx, legacyIdx, candidates)
 	}
 }
 

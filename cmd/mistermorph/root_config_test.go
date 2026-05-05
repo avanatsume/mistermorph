@@ -24,7 +24,7 @@ func TestResolveConfigFile_ExplicitFlagWins(t *testing.T) {
 	}
 }
 
-func TestResolveConfigFile_DefaultOrderPrefersCWD(t *testing.T) {
+func TestResolveConfigFile_DefaultOrderIgnoresCWD(t *testing.T) {
 	home := t.TempDir()
 	t.Setenv("HOME", home)
 	restoreConfigKey(t)
@@ -45,8 +45,9 @@ func TestResolveConfigFile_DefaultOrderPrefersCWD(t *testing.T) {
 	}
 
 	got, explicit := resolveConfigFile()
-	if got != filepath.Clean("config.yaml") {
-		t.Fatalf("resolveConfigFile() path = %q, want %q", got, filepath.Clean("config.yaml"))
+	want := filepath.Join(morphDir, "config.yaml")
+	if got != filepath.Clean(want) {
+		t.Fatalf("resolveConfigFile() path = %q, want %q", got, filepath.Clean(want))
 	}
 	if explicit {
 		t.Fatalf("resolveConfigFile() explicit = true, want false")

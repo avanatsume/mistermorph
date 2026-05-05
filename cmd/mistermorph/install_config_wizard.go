@@ -67,7 +67,7 @@ func findReadableInstallConfig(cmd *cobra.Command, installDir string) (string, b
 		candidates = append(candidates, pathutil.ExpandHomePath(cfgFlagPath))
 	}
 	candidates = append(candidates, filepath.Join(installDir, "config.yaml"))
-	candidates = append(candidates, filepath.Join(pathutil.ExpandHomePath("~/.morph"), "config.yaml"))
+	candidates = append(candidates, pathutil.DefaultConfigPath())
 
 	seen := map[string]bool{}
 	for _, p := range candidates {
