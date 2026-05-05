@@ -12,6 +12,14 @@ target_goos() {
   go env GOOS
 }
 
+target_goarch() {
+  if [[ -n "${GOARCH:-}" ]]; then
+    printf '%s\n' "${GOARCH}"
+    return
+  fi
+  go env GOARCH
+}
+
 default_desktop_output() {
   case "$(target_goos)" in
     darwin)
@@ -91,6 +99,7 @@ Notes:
   - --frontend-config accepts an absolute path, a repo-root-relative path, or
     a path relative to web/console, for example: vite.config.pro.js
   - --tags can be repeated. Values are passed to go build as one tag list.
+  - Windows builds generate icon resources from desktop/wails/packaging/appicon.png.
 EOF
 }
 
@@ -199,6 +208,8 @@ echo "==> Building desktop ${DESKTOP_OUTPUT}"
 echo "    tags: ${desktop_tags[*]}"
 desktop_ldflags=()
 if [[ "$(target_goos)" == "windows" ]]; then
+  echo "==> Generating Windows icon resources"
+  ARCH="$(target_goarch)" ./scripts/generate-desktop-windows-resources.sh
   desktop_ldflags=(-ldflags "-H=windowsgui")
 fi
 if [[ ${#desktop_ldflags[@]} -gt 0 ]]; then
