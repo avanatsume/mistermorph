@@ -11,6 +11,9 @@ go.work
 go.work.sum
 dump
 
+# OS metadata
+.DS_Store
+
 # Admin SPA dependencies
 web/console/node_modules/
 web/console/dist/
