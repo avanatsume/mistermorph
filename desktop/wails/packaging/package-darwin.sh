@@ -114,40 +114,31 @@ APPLE_APP_PASSWORD="${APPLE_APP_PASSWORD:-}"
 
 if [[ -n "${CODESIGN_IDENTITY}" ]]; then
   echo "signing with identity: ${CODESIGN_IDENTITY}"
-  codesign --deep --force --options runtime \
+  codesign --force --options runtime \
     --sign "${CODESIGN_IDENTITY}" \
     --timestamp \
     "${APP_DIR}/Contents/MacOS/${BUNDLED_BACKEND_NAME}"
-  codesign --deep --force --options runtime \
+  codesign --force --options runtime \
     --sign "${CODESIGN_IDENTITY}" \
     --timestamp \
     "${APP_DIR}/Contents/MacOS/${APP_EXECUTABLE_NAME}"
-  codesign --deep --force --options runtime \
+  codesign --force --options runtime \
     --sign "${CODESIGN_IDENTITY}" \
     --timestamp \
     "${APP_DIR}"
 else
   echo "no CODESIGN_IDENTITY set; applying ad-hoc signature for test distribution"
-  codesign --deep --force --sign - "${APP_DIR}"
+  codesign --force --sign - "${APP_DIR}/Contents/MacOS/${BUNDLED_BACKEND_NAME}"
+  codesign --force --sign - "${APP_DIR}/Contents/MacOS/${APP_EXECUTABLE_NAME}"
+  codesign --force --sign - "${APP_DIR}"
 fi
 
 echo "verifying app bundle signature..."
 codesign --verify --deep --strict --verbose=2 "${APP_DIR}"
 
-if [[ -n "${CODESIGN_IDENTITY}" && -n "${APPLE_ID}" && -n "${APPLE_TEAM_ID}" && -n "${APPLE_APP_PASSWORD}" ]]; then
-  echo "submitting app bundle for notarization..."
-  xcrun notarytool submit "${APP_DIR}" \
-    --apple-id "${APPLE_ID}" \
-    --team-id "${APPLE_TEAM_ID}" \
-    --password "${APPLE_APP_PASSWORD}" \
-    --wait
-  echo "stapling notarization ticket to app bundle..."
-  xcrun stapler staple "${APP_DIR}"
-elif [[ -n "${CODESIGN_IDENTITY}" ]]; then
+if [[ -n "${CODESIGN_IDENTITY}" && ( -z "${APPLE_ID}" || -z "${APPLE_TEAM_ID}" || -z "${APPLE_APP_PASSWORD}" ) ]]; then
   echo "skipping notarization because Apple notarization credentials are incomplete"
 fi
-
-tar -C "${OUT_DIR}" -czf "${TARBALL_PATH}" "${APP_BUNDLE_NAME}.app"
 
 hdiutil create \
   -volname "${APP_BUNDLE_NAME}" \
@@ -155,6 +146,15 @@ hdiutil create \
   -ov \
   -format UDZO \
   "${DMG_PATH}" >/dev/null
+
+if [[ -n "${CODESIGN_IDENTITY}" ]]; then
+  echo "signing DMG..."
+  codesign --force \
+    --sign "${CODESIGN_IDENTITY}" \
+    --timestamp \
+    "${DMG_PATH}"
+  codesign --verify --verbose=2 "${DMG_PATH}"
+fi
 
 if [[ -n "${CODESIGN_IDENTITY}" && -n "${APPLE_ID}" && -n "${APPLE_TEAM_ID}" && -n "${APPLE_APP_PASSWORD}" ]]; then
   echo "submitting DMG for notarization..."
@@ -165,4 +165,9 @@ if [[ -n "${CODESIGN_IDENTITY}" && -n "${APPLE_ID}" && -n "${APPLE_TEAM_ID}" && 
     --wait
   echo "stapling notarization ticket..."
   xcrun stapler staple "${DMG_PATH}"
+  xcrun stapler validate "${DMG_PATH}"
+  xcrun stapler staple "${APP_DIR}"
+  xcrun stapler validate "${APP_DIR}"
 fi
+
+tar -C "${OUT_DIR}" -czf "${TARBALL_PATH}" "${APP_BUNDLE_NAME}.app"

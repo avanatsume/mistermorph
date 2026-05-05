@@ -140,9 +140,11 @@ The package includes a sibling `mistermorph` backend binary, so the wrapper can 
 
 That backend is built with `CGO_ENABLED=0` on purpose. Keep it that way unless you have a packaging plan to change it.
 
+The macOS tag release job requires Apple signing secrets in GitHub Actions. It imports the Developer ID Application certificate into a temporary keychain, signs the app bundle, signs the DMG, submits the DMG through `notarytool`, staples the ticket to the DMG and app bundle, then uploads the release assets.
+
 ## Known Gaps
 
-- macOS DMG supports ad hoc signing for test distribution and Developer ID signing when release secrets are configured, but ad hoc builds still require testers to manually bypass Gatekeeper on first launch.
+- Local macOS test packages can still use ad hoc signing; those builds may require testers to manually bypass Gatekeeper on first launch.
 - Windows ships as a zip bundle, not an installer.
 - No dedicated UI yet for backend startup failures.
 - The wrapper still reuses the CLI backend through child-process orchestration rather than an in-process console module.

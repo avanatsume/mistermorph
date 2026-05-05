@@ -110,10 +110,21 @@ The Windows release bundle now includes both `mistermorph-desktop.exe` and `mist
 The Windows release workflow also generates a `.ico` and Windows `.syso` resource on the runner so the published desktop executable carries the app icon.
 The macOS packaging script signs the `.app` bundle in two modes:
 
-- with `CODESIGN_IDENTITY`: Developer ID signing, plus notarization if Apple notarization credentials are also present
+- with `CODESIGN_IDENTITY`: Developer ID signing, plus DMG notarization if Apple notarization credentials are also present
 - without `CODESIGN_IDENTITY`: ad hoc signing for local builds or test-user distribution
 
-The ad hoc path is intentional for the current testing phase. Test users may still need to manually bypass Gatekeeper on first launch.
+The tag release workflow requires these GitHub Actions secrets for the macOS DMG job:
+
+- `APPLE_CERTIFICATE_BASE64`: base64-encoded `.p12` containing the Developer ID Application certificate and private key
+- `APPLE_CERTIFICATE_PASSWORD`: password for that `.p12`
+- `APPLE_CODESIGN_IDENTITY`: full codesign identity, for example `Developer ID Application: Example Inc (TEAMID1234)`
+- `APPLE_ID`: Apple ID used for notarization
+- `APPLE_TEAM_ID`: Apple Developer Team ID
+- `APPLE_APP_PASSWORD`: app-specific password for notarization
+
+Create the `.p12` from Keychain Access after installing the Developer ID Application certificate, then base64-encode it before adding it to GitHub Secrets. A tag like `v0.2.42` triggers the release workflow. The macOS job imports the certificate into a temporary keychain, signs the bundled backend, signs the desktop app, creates and signs the DMG, submits the DMG with `notarytool`, staples the notarization ticket to the DMG and `.app`, and uploads the release assets.
+
+The ad hoc path is still available for local test packages. Test users may need to manually bypass Gatekeeper on first launch.
 
 If you want the same Windows executable icon in a local Windows build, run:
 
