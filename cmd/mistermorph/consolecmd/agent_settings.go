@@ -363,13 +363,11 @@ func resolveConsoleConfigPath() (string, error) {
 	if explicit != "" {
 		return pathutil.ExpandHomePath(explicit), nil
 	}
-	for _, candidate := range []string{"config.yaml", "~/.morph/config.yaml"} {
-		resolved := pathutil.ExpandHomePath(candidate)
-		if _, err := os.Stat(resolved); err == nil {
-			return resolved, nil
-		}
+	defaultPath := pathutil.DefaultConfigPath()
+	if _, err := os.Stat(defaultPath); err == nil {
+		return defaultPath, nil
 	}
-	return filepath.Clean(pathutil.ExpandHomePath("config.yaml")), nil
+	return defaultPath, nil
 }
 
 func readAgentSettings(configPath string) (agentSettingsPayload, error) {

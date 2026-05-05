@@ -128,7 +128,10 @@ fi
 
 mkdir -p "$(dirname "${OUTPUT}")"
 
-build_tags=("${USER_BUILD_TAGS[@]}")
+build_tags=()
+if [[ ${#USER_BUILD_TAGS[@]} -gt 0 ]]; then
+  build_tags=("${USER_BUILD_TAGS[@]}")
+fi
 if [[ "${EMBED_FRONTEND}" == "1" ]]; then
   if [[ "${BUILD_FRONTEND}" == "1" ]]; then
     echo "==> Building web/console"

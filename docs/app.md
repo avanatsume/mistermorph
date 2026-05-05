@@ -23,7 +23,7 @@ You do not need to run `mistermorph console serve`.
 The desktop code lives in `desktop/wails` and builds with `wailsdesktop production`.
 
 - the Wails process owns the native window and Go bindings
-- a child process runs `mistermorph console serve`
+- a child process runs the bundled backend with `console serve`
 - the App routes WebView traffic to that child process
 
 The wrapper only handles lifecycle, process management, restart, and proxying.
@@ -49,7 +49,7 @@ The wrapper only handles lifecycle, process management, restart, and proxying.
                                                | spawn
                                                v
                            +----------------------------------+
-                           | Child: `mistermorph console serve` |
+                           | Child: bundled backend `console serve` |
                            | listen: 127.0.0.1:<random>       |
                            | base path: /console              |
                            | allow-empty-password: enabled    |
@@ -64,7 +64,7 @@ Startup sequence:
 desktop main
   -> resolve backend binary path
   -> reserve random loopback port
-  -> spawn child: mistermorph console serve
+  -> spawn child: bundled backend console serve
   -> poll GET /health until ready
   -> open native window
   -> proxy requests to the child process
@@ -84,7 +84,7 @@ incomplete config
 
 ## Paths and Configuration
 
-- Console assets are embedded in the bundled `mistermorph` backend by default.
+- Console assets are embedded in the bundled backend by default.
 - You can override static assets with:
   - `console.static_dir`
   - `--console-static-dir /abs/path/to/dist`
@@ -136,7 +136,7 @@ Tagged releases currently publish:
 - Linux `amd64`: `mistermorph-desktop-linux-amd64.AppImage`
 - Windows `amd64`: `mistermorph-desktop-windows-amd64.zip`
 
-The package includes a sibling `mistermorph` backend binary, so the wrapper can start `console serve` locally without a first-run download.
+The package includes a sibling backend binary, so the wrapper can start `console serve` locally without a first-run download. macOS and Windows name that backend `mistermorphc`; Linux keeps it as `mistermorph`.
 
 That backend is built with `CGO_ENABLED=0` on purpose. Keep it that way unless you have a packaging plan to change it.
 

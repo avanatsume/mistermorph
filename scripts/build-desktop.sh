@@ -14,8 +14,11 @@ target_goos() {
 
 default_desktop_output() {
   case "$(target_goos)" in
+    darwin)
+      printf '%s\n' "./bin/MisterMorph"
+      ;;
     windows)
-      printf '%s\n' "./bin/mistermorph-desktop.exe"
+      printf '%s\n' "./bin/MisterMorph.exe"
       ;;
     *)
       printf '%s\n' "./bin/mistermorph-desktop"
@@ -25,8 +28,11 @@ default_desktop_output() {
 
 default_backend_output() {
   case "$(target_goos)" in
+    darwin)
+      printf '%s\n' "./bin/mistermorphc"
+      ;;
     windows)
-      printf '%s\n' "./bin/mistermorph.exe"
+      printf '%s\n' "./bin/mistermorphc.exe"
       ;;
     *)
       printf '%s\n' "./bin/mistermorph"
@@ -78,8 +84,8 @@ Default desktop build tags:
   Release build:      wailsdesktop production
 
 Default outputs:
-  desktop: ./bin/mistermorph-desktop (or .exe on Windows)
-  backend: ./bin/mistermorph (or .exe on Windows)
+  desktop: ./bin/MisterMorph on macOS/Windows, ./bin/mistermorph-desktop on Linux
+  backend: ./bin/mistermorphc on macOS/Windows, ./bin/mistermorph on Linux
 
 Notes:
   - --frontend-config accepts an absolute path, a repo-root-relative path, or
@@ -166,9 +172,11 @@ fi
 if [[ "${BUILD_BACKEND}" == "1" ]]; then
   echo "==> Building backend ${BACKEND_OUTPUT}"
   backend_args=(--skip-frontend-build --output "${BACKEND_OUTPUT}")
-  for tag_set in "${USER_BUILD_TAGS[@]}"; do
-    backend_args+=(--tags "${tag_set}")
-  done
+  if [[ ${#USER_BUILD_TAGS[@]} -gt 0 ]]; then
+    for tag_set in "${USER_BUILD_TAGS[@]}"; do
+      backend_args+=(--tags "${tag_set}")
+    done
+  fi
   ./scripts/build-backend.sh "${backend_args[@]}"
 fi
 
@@ -183,7 +191,9 @@ if [[ "${ENABLE_DEVTOOLS}" == "1" ]]; then
 else
   desktop_tags+=(production)
 fi
-desktop_tags+=("${USER_BUILD_TAGS[@]}")
+if [[ ${#USER_BUILD_TAGS[@]} -gt 0 ]]; then
+  desktop_tags+=("${USER_BUILD_TAGS[@]}")
+fi
 
 echo "==> Building desktop ${DESKTOP_OUTPUT}"
 echo "    tags: ${desktop_tags[*]}"
@@ -191,7 +201,11 @@ desktop_ldflags=()
 if [[ "$(target_goos)" == "windows" ]]; then
   desktop_ldflags=(-ldflags "-H=windowsgui")
 fi
-go build "${desktop_ldflags[@]}" -tags "${desktop_tags[*]}" -o "${DESKTOP_OUTPUT}" ./desktop/wails
+if [[ ${#desktop_ldflags[@]} -gt 0 ]]; then
+  go build "${desktop_ldflags[@]}" -tags "${desktop_tags[*]}" -o "${DESKTOP_OUTPUT}" ./desktop/wails
+else
+  go build -tags "${desktop_tags[*]}" -o "${DESKTOP_OUTPUT}" ./desktop/wails
+fi
 
 echo
 echo "Built:"

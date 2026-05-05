@@ -14,7 +14,7 @@ The canonical config template is [../assets/config/config.example.yaml](../asset
 
 Precedence:
 
-`CLI flag > MISTER_MORPH_* env > config.yaml > default`
+`CLI flag > MISTER_MORPH_* env > ~/.morph/config.yaml > default`
 
 Supported config file formats:
 
@@ -56,8 +56,8 @@ run with that config until process exit
 Resolved console config path:
 
 - `--config`, if explicitly set
-- otherwise the first existing file in `config.yaml`, `~/.morph/config.yaml`
-- if neither exists, the default write target is local `config.yaml`
+- otherwise `~/.morph/config.yaml`
+- if it does not exist yet, `~/.morph/config.yaml` is still the default write target
 
 Snapshot build flow:
 

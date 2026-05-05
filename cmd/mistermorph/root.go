@@ -250,11 +250,9 @@ func resolveConfigFile() (string, bool) {
 		return pathutil.ExpandHomePath(explicit), true
 	}
 
-	for _, candidate := range []string{"config.yaml", "~/.morph/config.yaml"} {
-		resolved := pathutil.ExpandHomePath(candidate)
-		if _, err := os.Stat(resolved); err == nil {
-			return resolved, false
-		}
+	defaultPath := pathutil.DefaultConfigPath()
+	if _, err := os.Stat(defaultPath); err == nil {
+		return defaultPath, false
 	}
 	return "", false
 }

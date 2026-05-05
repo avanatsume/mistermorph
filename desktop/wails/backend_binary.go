@@ -162,6 +162,16 @@ func desktopBackendBinaryBaseName() string {
 	return "mistermorph"
 }
 
+func desktopBundledBackendBinaryBaseName() string {
+	if goRuntime.GOOS == "windows" {
+		return "mistermorphc.exe"
+	}
+	if goRuntime.GOOS == "linux" {
+		return desktopBackendBinaryBaseName()
+	}
+	return "mistermorphc"
+}
+
 func desktopLegacyBundledBackendBinaryBaseName() string {
 	if goRuntime.GOOS == "windows" {
 		return "mistermorph-backend.exe"
@@ -170,12 +180,19 @@ func desktopLegacyBundledBackendBinaryBaseName() string {
 }
 
 func desktopBackendCandidateBaseNames() []string {
+	bundled := desktopBundledBackendBinaryBaseName()
 	base := desktopBackendBinaryBaseName()
 	legacy := desktopLegacyBundledBackendBinaryBaseName()
-	if legacy == base {
-		return []string{base}
+	out := make([]string, 0, 3)
+	seen := map[string]struct{}{}
+	for _, name := range []string{bundled, base, legacy} {
+		if _, ok := seen[name]; ok {
+			continue
+		}
+		seen[name] = struct{}{}
+		out = append(out, name)
 	}
-	return []string{base, legacy}
+	return out
 }
 
 func desktopBackendAutoDownloadEnabled() bool {

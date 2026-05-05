@@ -3,15 +3,15 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-APP_BUNDLE_NAME="${APP_BUNDLE_NAME:-mistermorph-desktop}"
+APP_BUNDLE_NAME="${APP_BUNDLE_NAME:-MisterMorph}"
 APP_DISPLAY_NAME="${APP_DISPLAY_NAME:-MisterMorph}"
-APP_EXECUTABLE_NAME="${APP_EXECUTABLE_NAME:-mistermorph-desktop}"
+APP_EXECUTABLE_NAME="${APP_EXECUTABLE_NAME:-MisterMorph}"
 BUNDLE_ID="${BUNDLE_ID:-io.quaily.mistermorph}"
 VERSION="${VERSION:-0.0.0}"
 ARCH="${ARCH:-arm64}"
-DESKTOP_BIN="${DESKTOP_BIN:-${ROOT_DIR}/dist/mistermorph-desktop}"
-BACKEND_BIN="${BACKEND_BIN:-${ROOT_DIR}/dist/mistermorph}"
-BUNDLED_BACKEND_NAME="${BUNDLED_BACKEND_NAME:-mistermorph}"
+DESKTOP_BIN="${DESKTOP_BIN:-${ROOT_DIR}/dist/MisterMorph}"
+BACKEND_BIN="${BACKEND_BIN:-${ROOT_DIR}/dist/mistermorphc}"
+BUNDLED_BACKEND_NAME="${BUNDLED_BACKEND_NAME:-mistermorphc}"
 ICON_PNG="${ICON_PNG:-${ROOT_DIR}/desktop/wails/packaging/appicon.png}"
 OUT_DIR="${OUT_DIR:-${ROOT_DIR}/dist}"
 APP_DIR="${OUT_DIR}/${APP_BUNDLE_NAME}.app"
@@ -70,7 +70,6 @@ iconutil -c icns "${ICONSET_DIR}" -o "${ICNS_PATH}"
 
 cp "${ICNS_PATH}" "${APP_DIR}/Contents/Resources/mistermorph.icns"
 cp "${DESKTOP_BIN}" "${APP_DIR}/Contents/MacOS/${APP_EXECUTABLE_NAME}"
-# Keep desktop and backend executable names lowercase and distinct.
 cp "${BACKEND_BIN}" "${APP_DIR}/Contents/MacOS/${BUNDLED_BACKEND_NAME}"
 chmod +x "${APP_DIR}/Contents/MacOS/${APP_EXECUTABLE_NAME}" "${APP_DIR}/Contents/MacOS/${BUNDLED_BACKEND_NAME}"
 
