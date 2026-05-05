@@ -1,6 +1,7 @@
 import { computed } from "vue";
 
 import { translate } from "../core/context";
+import { openExternalURL as openExternal } from "../core/external-links";
 import {
   hasLLMFieldValue,
   isLLMFieldEnvManaged,
@@ -223,14 +224,6 @@ const LLMConfigForm = {
         return;
       }
       updateField("tools_emulation_mode", item.value);
-    }
-
-    function openExternal(url) {
-      const target = String(url || "").trim();
-      if (!target) {
-        return;
-      }
-      window.open(target, "_blank", "noopener,noreferrer");
     }
 
     return {

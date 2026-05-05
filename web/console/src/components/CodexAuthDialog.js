@@ -1,5 +1,6 @@
 import { computed } from "vue";
 import { translate } from "../core/context";
+import { openExternalURL } from "../core/external-links";
 import "./CodexAuthDialog.css";
 
 const CODEX_USAGE_URL = "https://chatgpt.com/codex/settings/usage";
@@ -60,12 +61,12 @@ const CodexAuthDialog = {
     function openVerificationURL() {
       const url = String(props.verificationURL || "").trim();
       if (url) {
-        window.open(url, "_blank", "noopener,noreferrer");
+        openExternalURL(url);
       }
     }
 
     function openCodexUsage() {
-      window.open(CODEX_USAGE_URL, "_blank", "noopener,noreferrer");
+      openExternalURL(CODEX_USAGE_URL);
     }
 
     async function copyUserCode() {

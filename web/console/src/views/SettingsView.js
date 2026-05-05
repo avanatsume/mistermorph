@@ -26,6 +26,11 @@ import {
   llmFieldValue,
 } from "../core/llm-env-managed";
 import {
+  canOpenExternalURLInDesktop,
+  openExternalPlaceholder,
+  openExternalURL,
+} from "../core/external-links";
+import {
   defaultEndpointForSetupProvider,
   OPENAI_COMPATIBLE_API_BASE_OPTIONS,
   normalizeSetupProviderChoice,
@@ -1148,14 +1153,9 @@ const SettingsView = {
     function openCodexAuthDialog() {
       const shouldStartLogin = codexAuthNeedsLogin.value && !codexLoginSession.value && !codexAuthBusy.value;
       let authWindow = null;
-      if (shouldStartLogin) {
-        try {
-          // Open synchronously from the click event so popup blockers allow the auth tab.
-          authWindow = window.open("about:blank", "_blank");
-          if (authWindow) {
-            authWindow.opener = null;
-          }
-        } catch {}
+      if (shouldStartLogin && !canOpenExternalURLInDesktop()) {
+        // Open synchronously from the click event so popup blockers allow the auth tab.
+        authWindow = openExternalPlaceholder();
       }
       codexAuthDialogOpen.value = true;
       void loadCodexAuthStatus();
@@ -1209,7 +1209,7 @@ const SettingsView = {
             authWindow.location.href = codexLoginVerificationURL.value;
             authWindowUsed = true;
           } else {
-            window.open(codexLoginVerificationURL.value, "_blank", "noopener,noreferrer");
+            openExternalURL(codexLoginVerificationURL.value);
           }
         }
         scheduleCodexLoginPoll(payload?.interval_seconds);

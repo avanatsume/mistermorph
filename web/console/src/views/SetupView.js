@@ -15,6 +15,11 @@ import {
   translate,
 } from "../core/context";
 import {
+  canOpenExternalURLInDesktop,
+  openExternalPlaceholder,
+  openExternalURL as openExternal,
+} from "../core/external-links";
+import {
   hasLLMFieldValue as hasManagedLLMFieldValue,
   isLLMFieldEnvManaged as isManagedLLMField,
   llmFieldEnvName as managedLLMFieldEnvName,
@@ -793,14 +798,9 @@ const SetupView = {
     function openCodexAuthDialog() {
       const shouldStartLogin = codexAuthNeedsLogin.value && !codexLoginSession.value && !codexAuthBusy.value;
       let authWindow = null;
-      if (shouldStartLogin) {
-        try {
-          // Open synchronously from the click event so popup blockers allow the auth tab.
-          authWindow = window.open("about:blank", "_blank");
-          if (authWindow) {
-            authWindow.opener = null;
-          }
-        } catch {}
+      if (shouldStartLogin && !canOpenExternalURLInDesktop()) {
+        // Open synchronously from the click event so popup blockers allow the auth tab.
+        authWindow = openExternalPlaceholder();
       }
       codexAuthDialogOpen.value = true;
       void loadCodexAuthStatus();
@@ -854,7 +854,7 @@ const SetupView = {
             authWindow.location.href = codexLoginVerificationURL.value;
             authWindowUsed = true;
           } else {
-            window.open(codexLoginVerificationURL.value, "_blank", "noopener,noreferrer");
+            openExternal(codexLoginVerificationURL.value);
           }
         }
         scheduleCodexLoginPoll(payload?.interval_seconds);
@@ -1279,14 +1279,6 @@ const SetupView = {
         llmForm.cloudflare_api_token = "";
         llmForm.cloudflare_account_id = "";
       }
-    }
-
-    function openExternal(url) {
-      const target = String(url || "").trim();
-      if (!target) {
-        return;
-      }
-      window.open(target, "_blank", "noopener,noreferrer");
     }
 
     function openAPIBasePicker() {

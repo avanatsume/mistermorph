@@ -54,6 +54,9 @@ func buildDesktopAppOptions(host *DesktopHost, appBinding *App) application.Opti
 			Handler: http.NotFoundHandler(),
 		},
 		OnShutdown: host.Stop,
+		RawMessageHandler: func(_ application.Window, message string, _ *application.OriginInfo) {
+			appBinding.HandleRawMessage(message)
+		},
 		Services: []application.Service{
 			application.NewService(appBinding),
 		},

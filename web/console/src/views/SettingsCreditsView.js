@@ -4,6 +4,7 @@ import "./SettingsCreditsView.css";
 
 import AppPage from "../components/AppPage";
 import { apiFetch, translate } from "../core/context";
+import { openExternalURL as openExternal } from "../core/external-links";
 
 function formatCount(value) {
   const n = Number.isFinite(Number(value)) ? Math.max(0, Math.trunc(Number(value))) : 0;
@@ -81,13 +82,6 @@ const SettingsCreditsView = {
 
     function goBack() {
       router.push("/settings");
-    }
-
-    function openExternal(url) {
-      if (typeof window === "undefined" || typeof url !== "string" || !url.trim()) {
-        return;
-      }
-      window.open(url, "_blank", "noopener,noreferrer");
     }
 
     function contributorAvatar(item) {
