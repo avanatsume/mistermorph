@@ -26,6 +26,10 @@
   font-family: var(--font-mono) !important;
 }
 
+.markdown-editor-surface .overtype-container[data-mode="preview"] .overtype-wrapper .overtype-preview {
+  font-family: var(--font-ui) !important;
+}
+
 .markdown-editor-hint {
   margin: 0;
   font-size: 12px;

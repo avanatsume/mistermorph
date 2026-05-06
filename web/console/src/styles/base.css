@@ -13,6 +13,8 @@
   --danger: var(--q-c-red);
   --font-ui: var(--q-font-ui);
   --font-mono: var(--q-font-mono);
+  --q-font-serif: var(--font-ui);
+  --q-card-title-font-family: var(--font-ui);
   --app-shell-vpad: 0;
   --sidebar-vpad: 16px;
   color-scheme: light;
